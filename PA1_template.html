@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+<title>Reproducible Research: Peer Assessment 1</title>
+
+<script src="PA1_template_files/jquery-1.11.0/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="PA1_template_files/bootstrap-3.3.1/css/bootstrap.min.css" rel="stylesheet" />
+<script src="PA1_template_files/bootstrap-3.3.1/js/bootstrap.min.js"></script>
+<script src="PA1_template_files/bootstrap-3.3.1/shim/html5shiv.min.js"></script>
+<script src="PA1_template_files/bootstrap-3.3.1/shim/respond.min.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<link rel="stylesheet"
+      href="PA1_template_files/highlight/default.css"
+      type="text/css" />
+<script src="PA1_template_files/highlight/highlight.js"></script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img { 
+  max-width:100%; 
+  height: auto; 
+}
+</style>
+<div class="container-fluid main-container">
+
+
+<div id="header">
+<h1 class="title">Reproducible Research: Peer Assessment 1</h1>
+</div>
+
+
+<div id="loading-and-preprocessing-the-data" class="section level2">
+<h2>Loading and preprocessing the data</h2>
+<pre class="r"><code># read csv file
+rawData &lt;- read.csv(&quot;./data/activity.csv&quot;)
+#processing data
+rawData &lt;- mutate(rawData, fullDate = as.POSIXct(rawData$date, format=&quot;%Y-%m-%d&quot;))
+data &lt;- rawData %&gt;%
+        select(steps, fullDate, interval) %&gt;%
+        mutate(dayType = as.factor(ifelse(weekdays(fullDate) == &quot;Sunday&quot; | weekdays(fullDate) == &quot;Saturday&quot;, &quot;wk&quot;, &quot;wd&quot;)))</code></pre>
+</div>
+<div id="what-is-mean-total-number-of-steps-taken-per-day" class="section level2">
+<h2>What is mean total number of steps taken per day?</h2>
+<pre class="r"><code>sumOfSteps &lt;- aggregate(data$steps, by = list(date = data$fullDate), sum)
+head(sumOfSteps)</code></pre>
+<pre><code>##         date     x
+## 1 2012-10-01    NA
+## 2 2012-10-02   126
+## 3 2012-10-03 11352
+## 4 2012-10-04 12116
+## 5 2012-10-05 13294
+## 6 2012-10-06 15420</code></pre>
+<pre class="r"><code>qplot(sumOfSteps$x, geom=&quot;histogram&quot;, fill = I(&quot;lightgreen&quot;), col = I(&quot;black&quot;), xlab = &quot;Steps (thousands)&quot;, ylab = &quot;Frequency&quot;, main = &quot;Histogram of Total Steps each day&quot;, binwidth = 1000)</code></pre>
+<p><img src="PA1_template_files/figure-html/unnamed-chunk-3-1.png" /></p>
+<pre class="r"><code>mean(sumOfSteps$x, na.rm = TRUE)</code></pre>
+<pre><code>## [1] 10766.19</code></pre>
+<pre class="r"><code>quantile(sumOfSteps$x, probs = c(.5), na.rm = TRUE)</code></pre>
+<pre><code>##   50% 
+## 10765</code></pre>
+</div>
+<div id="what-is-the-average-daily-activity-pattern" class="section level2">
+<h2>What is the average daily activity pattern?</h2>
+<p>Calculate average on each 5-minute intervals</p>
+<pre class="r"><code>intervalData &lt;- aggregate(data$steps, by = list(interval = data$interval), mean, na.rm = TRUE)
+head(intervalData)</code></pre>
+<pre><code>##   interval         x
+## 1        0 1.7169811
+## 2        5 0.3396226
+## 3       10 0.1320755
+## 4       15 0.1509434
+## 5       20 0.0754717
+## 6       25 2.0943396</code></pre>
+<pre class="r"><code>p &lt;- ggplot(data = intervalData, aes(x = interval, y = x))
+p + geom_line()  + labs(x = &quot;Interval&quot;, y = &quot;Average Number of Steps&quot;, title = &quot;&quot;)</code></pre>
+<p><img src="PA1_template_files/figure-html/unnamed-chunk-4-1.png" /></p>
+<p>Maximum number of steps is 206.1698113 at 5-minute interval of 835</p>
+</div>
+<div id="imputing-missing-values" class="section level2">
+<h2>Imputing missing values</h2>
+<ol style="list-style-type: decimal">
+<li>Total missing values</li>
+</ol>
+<pre class="r"><code>nrow(data[is.na(data$steps),])</code></pre>
+<pre><code>## [1] 2304</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Fill up NAs with median values of each interval</li>
+</ol>
+<pre class="r"><code>## I couldn&#39;t find a more elegant way to replace NAs with mean values for each interval.  Ideally, using dplyr&#39;s mutate function would suffice.
+#newData &lt;- mutate(data, cleanSteps = ifelse(is.na(data$steps), getMeanInterval(intv = data$interval, intvDf = intervalData), data$step))
+#head(newData)
+
+cleanSteps &lt;- numeric()
+for(i in 1:nrow(data)) {
+        if(is.na(data[i, 1])){
+                intv &lt;- data[i, 3]
+                cleanSteps &lt;- c(cleanSteps, intervalData[which(intervalData$interval == intv), 2])  
+        }
+        else {
+                cleanSteps &lt;- c(cleanSteps, data[i, 1]) 
+        }
+}
+newData &lt;- cbind(data, cleanSteps = cleanSteps)         
+
+newSumOfSteps &lt;- aggregate(newData$cleanSteps, by = list(date = newData$fullDate), sum)
+head(newSumOfSteps)</code></pre>
+<pre><code>##         date        x
+## 1 2012-10-01 10766.19
+## 2 2012-10-02   126.00
+## 3 2012-10-03 11352.00
+## 4 2012-10-04 12116.00
+## 5 2012-10-05 13294.00
+## 6 2012-10-06 15420.00</code></pre>
+<pre class="r"><code>qplot(newSumOfSteps$x, geom=&quot;histogram&quot;, fill = I(&quot;lightgreen&quot;), col = I(&quot;black&quot;), xlab = &quot;Steps (thousands)&quot;, ylab = &quot;Frequency&quot;, main = &quot;Histogram of Total Steps each day&quot;, binwidth = 1000)</code></pre>
+<p><img src="PA1_template_files/figure-html/unnamed-chunk-6-1.png" /></p>
+</div>
+<div id="are-there-differences-in-activity-patterns-between-weekdays-and-weekends" class="section level2">
+<h2>Are there differences in activity patterns between weekdays and weekends?</h2>
+</div>
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+$(document).ready(function () {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+});
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
