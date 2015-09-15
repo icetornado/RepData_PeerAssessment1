@@ -38,7 +38,7 @@ head(sumOfSteps)
 qplot(sumOfSteps$x, geom="histogram", fill = I("lightgreen"), col = I("black"), xlab = "Steps", ylab = "Frequency", main = "Histogram of Total Steps Each Day", binwidth = 1000)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+![](figure/unnamed-chunk-3-1.png) 
 
 ```r
 meanX <- mean(sumOfSteps$x, na.rm = TRUE)
@@ -83,7 +83,7 @@ p <- ggplot(data = intervalData, aes(x = interval, y = x))
 p + geom_line()  + labs(x = "Interval", y = "Average Number of Steps", title = "")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+![](figure/unnamed-chunk-4-1.png) 
 
 ```r
 maxX <- max(intervalData$x)
@@ -145,7 +145,7 @@ head(newSumOfSteps)
 qplot(newSumOfSteps$x, geom="histogram", fill = I("lightgreen"), col = I("black"), xlab = "Steps", ylab = "Frequency", main = "Histogram of Total Steps Each Day (after imputing NAs)", binwidth = 1000)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
+![](figure/unnamed-chunk-6-1.png) 
 
 ```r
 newMeanX <- mean(newSumOfSteps$x)
@@ -188,7 +188,7 @@ p3 <- ggplot(data = dataWK, aes(x = interval, y = x)) + geom_line(color = "green
 multiplot(p2, p3, cols=1)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
+![](figure/unnamed-chunk-7-1.png) 
 
 ```r
 ##testing
@@ -203,7 +203,7 @@ pTest + geom_line() +  aes(group = dayType) +
                           labels=c("Weekday", "Weekend"))
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-7-2.png) 
+![](figure/unnamed-chunk-7-2.png) 
 
 ## External source usage:
 <strong>Multiplot function</strong>
