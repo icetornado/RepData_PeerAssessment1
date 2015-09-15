@@ -9,18 +9,7 @@ library(knitr)
 library("dplyr")
 library("ggplot2")
 #opts_chunk$set(dpi=72,dev='png')
-```
-## External source usage:
-<strong>Multiplot function</strong>
 
-Courtesy of Winston Chang, the author of "R Graphics Cookbook"
-
-URL: <a href="http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/">http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/</a>
-
-License: <small>This work is licensed under a Creative Commons Attribution-Share Alike 3.0 Unported License.
-The R code is freely available for use without any restrictions. In other words: you may reuse the R code for any purpose (and under any license), but if you want to reuse the other content of this website, you must adhere to the CC license.</small>
-
-``` {R}
 # Multiple plot function
 # ======================================
 # ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
@@ -67,7 +56,6 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   }
 }
 ```
-
 
 ## Loading and preprocessing the data
 ```{r}
@@ -118,8 +106,9 @@ nrow(data[is.na(data$steps),])
 2. Fill up NAs with median values of each interval
 ```{R}
 
-## I couldn't find a more elegant way to replace NAs with mean values for each 
-## interval.  Ideally, using dplyr's mutate function would suffice.
+## I couldn't find a better or more elegant way to replace NAs with mean values for each 
+## interval.  The following commented code using dplyr's mutate function is my direction to
+# tackle the problem but it just replace NAs data for the first day.
 # function(intv, intvDf) {
 #        return(as.numeric(intvDf[which(intvDf$interval == intv), 2]))
 #}
@@ -148,7 +137,7 @@ print(newMeanX)
 newQuantileX <- quantile(newSumOfSteps$x, probs = c(.5))
 print(newQuantileX)
 ```
-After imputing missing values, new values for the mean and the median of total number of steps taken per day are <strong>`r sprintf("%.2f", newMeanX)`</strong> and <strong>`r sprintf("%.2f", newQuantileX)`</strong>.  The mean remains the same, but the median moves closer to the mean (in this case, they are identical).
+After imputing missing values, new values for the mean and the median of total number of steps taken per day are <strong>`r sprintf("%.2f", newMeanX)`</strong> and <strong>`r sprintf("%.2f", newQuantileX)`</strong>.  The mean remains the same, but the median moves closer to the mean (in this case, they are almost identical). In other words, the more data that is presented, the more concentrated density function is arounf the sample mean.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 A factor variable with two levels "weekday" and "weekend" has been created for the dataset <i>(Please refer to data processing code near the top of the page)</i>
@@ -167,6 +156,7 @@ dataWK <- aggregate(dataWK$cleanSteps, by = list(interval = dataWK$interval), FU
 
 p3 <- ggplot(data = dataWK, aes(x = interval, y = x)) + geom_line(color = "green")  + labs(x = "Interval", y = "Average Number of Steps", title = "Weekend") + ylim(0, 250)
 
+## using multiplot function of Winston Chang (see below External Source Usage section)
 multiplot(p2, p3, cols=1)
 
 ##testing
@@ -181,3 +171,13 @@ pTest + geom_line() +  aes(group = dayType) +
                           labels=c("Weekday", "Weekend"))
 
 ```
+
+## External source usage:
+<strong>Multiplot function</strong>
+
+Courtesy of Winston Chang, the author of "R Graphics Cookbook"
+
+URL: <a href="http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/">http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/</a>
+
+License: <small>This work is licensed under a Creative Commons Attribution-Share Alike 3.0 Unported License.
+The R code is freely available for use without any restrictions. In other words: you may reuse the R code for any purpose (and under any license), but if you want to reuse the other content of this website, you must adhere to the CC license.</small>
